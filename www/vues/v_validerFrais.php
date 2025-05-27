@@ -15,7 +15,7 @@
 
 
 </select>-->
-<form action="index.php?uc=validerFrais&action=corrigerMajFraisForfait method="post" role="form">
+<form action="index.php?uc=validerFrais&action=corrigerMajFraisForfait" method="post" role="form">
     <div class="row">
         <div class="col-md-4">
             <div class="form-group">
@@ -127,8 +127,8 @@
                         $id = $lesFraisHorsForfait['id'];
                         ?>           
                         <tr>
-                            <td><input type="hidden" name="id" value="<?php echo $id ?>"</td>
-                            <td><input type="text" name="date" value="<?php echo $date ?>"</td>
+                            <td><input type="hidden" name="id" value="<?php echo $id ?>">
+                            <input type="text" name="date" value="<?php echo $date ?>"></td>
                             <td><input type="text" name="libelle" value="<?php echo $libelle ?>"></td>
                             <td><input type="text" name="montant" value="<?php echo $montant ?>"</td>
                             <td> 
@@ -145,10 +145,15 @@
     </div>
 </form>
 <label for="lstMois" accesskey="n">Nombre de justificatifs: </label>
-
+<form action="index.php?uc=validerFrais&action=btnvalider" method="post" role="form">
+    
+    <input type="hidden" name="lstv" value="<?php echo $visiteurASelectionner ?>" >
+    <input type="hidden" name="lstMois" value="<?php echo $moisASelectionner ?>" >
 <input type= "text" id="lstMois" name="justificatif" class="form-control">
 <br>
 <button class="btn btn-success" type="submit">Valider</button>
 
 
+
+</form>
 

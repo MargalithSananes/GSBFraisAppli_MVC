@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Gestion de la déconnexion
  *
@@ -13,6 +14,9 @@
  * @version   GIT: <0>
  * @link      http://www.reseaucerta.org Contexte « Laboratoire GSB »
  */
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS);
 if (!$uc) {
@@ -20,19 +24,19 @@ if (!$uc) {
 }
 
 switch ($action) {
-case 'demandeDeconnexion':
-    include 'vues/v_deconnexion.php';
-    break;
-case 'valideDeconnexion':
-    if (estConnecte()) {
+    case 'demandeDeconnexion':
         include 'vues/v_deconnexion.php';
-    } else {
-        ajouterErreur("Vous n'êtes pas connecté");
-        include 'vues/v_erreurs.php';
+        break;
+    case 'valideDeconnexion':
+        if (estConnecte() && estConnecteComptable()) {
+            include 'vues/v_deconnexion.php';
+        } else {
+            ajouterErreur("Vous n'êtes pas connecté");
+            include 'vues/v_erreurs.php';
+            include 'vues/v_connexion.php';
+        }
+        break;
+    default:
         include 'vues/v_connexion.php';
-    }
-    break;
-default:
-    include 'vues/v_connexion.php';
-    break;
+        break;
 }

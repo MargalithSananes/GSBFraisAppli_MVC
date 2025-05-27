@@ -101,8 +101,8 @@
                                         Valider la fiche de frais
                                     </a>
                                 </li>
-                                <li <?php if ($uc == 'etatFrais') { ?>class="active"<?php } ?>>
-                                    <a href="index.php?uc=etatFrais&action=selectionnerMois" style= 'color :orange'>
+                                <li <?php if ($uc == 'mettreEnPaiement') { ?>class="active"<?php } ?>>
+                                    <a href="index.php?uc=mettreEnPaiement&action=choixFiche" style= 'color :orange'>
                                         <span class="glyphicon glyphicon-list-alt"></span>
                                         Mettre en paiement
                                     </a>

@@ -39,7 +39,7 @@
                            class="btn btn-success btn-lg" role="button">
                             <span  class="glyphicon glyphicon-pencil"></span>
                             <br>Valider la fiche de frais</a>
-                        <a href="index.php?uc=etatFrais&action=selectionnerMois"
+                        <a href="index.php?uc=mettreEnPaiement&action=choixFiche"
                            class="btn btn-primary btn-lg" role="button">
                             <span class="glyphicon glyphicon-list-alt"></span>
                             <br>Suivre le paiement de la fiche de frais</a>

@@ -14,6 +14,10 @@
  * @link      http://www.reseaucerta.org Contexte « Laboratoire GSB »
  */
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $idVisiteur = $_SESSION['idVisiteur'];
 $mois = getMois(date('d/m/Y'));
 $numAnnee = substr($mois, 0, 4);
@@ -38,7 +42,6 @@ case 'validerCreationFrais':
     $dateFrais = filter_input(INPUT_POST, 'dateFrais', FILTER_SANITIZE_SPECIAL_CHARS);
     $libelle = filter_input(INPUT_POST, 'libelle', FILTER_SANITIZE_SPECIAL_CHARS);
     $montant = filter_input(INPUT_POST, 'montant', FILTER_VALIDATE_FLOAT);
-    var_dump($montant);
     valideInfosFrais($dateFrais, $libelle, $montant);
     if (nbErreurs() != 0) {
         include 'vues/v_erreurs.php';

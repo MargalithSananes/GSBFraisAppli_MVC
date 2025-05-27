@@ -258,7 +258,7 @@ function getLesDouzeDerniersMois() {
             $numMois = $numMois - 1;
         }
         if (strlen($numMois) == 1) {
-            $numMois = '0'. $numMois;
+            $numMois = '0' . $numMois;
         }
 
         $lesMois[] = array(

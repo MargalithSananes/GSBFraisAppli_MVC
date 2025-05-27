@@ -37,6 +37,7 @@
  * @link      http://www.php.net/manual/fr/book.pdo.php PHP Data Objects sur php.net
  */
 class PdoGsb {
+    // connexion en localhost
 
     private static $serveur = 'mysql:host=localhost';
     private static $bdd = 'dbname=gsb_frais';
@@ -44,7 +45,18 @@ class PdoGsb {
     private static $mdp = 'secret';
     private static $monPdo;
     private static $monPdoGsb = null;
+     
+    
+/* connexion en externe
 
+    private static $serveur = 'db5017892270.hosting-data.io';
+    private static $bdd = 'dbname=dbs12930308';
+    private static $user = 'dbu1499016';
+    private static $mdp = 'SananesMargalith2025';
+    private static $monPdo;
+    private static $monPdoGsb = null;
+     
+    */
     /**
      * Constructeur privé, crée l'instance de PDO qui sera sollicitée
      * pour toutes les méthodes de la classe
@@ -512,23 +524,129 @@ class PdoGsb {
         $requetePrepare->execute();
     }
 
-    public function ValiderFrais($idVisiteur,$montant) {
+    public function ValiderFrais($idVisiteur, $montant) {
         $requetePrepare = PdoGSB::$monPdo->prepare(
-        'SELECT SUM (fraisforfait.montant*lignefraisforfait.quantite)'
-        . 'FROM lignefraisforfait '
-        . 'INNER JOIN fraisforfait'   
-        . 'ON fraisforfait.id = lignefraisforfait.idfraisforfait'
-        . 'WHERE fraisforfait*Montant'
-        
-       
+                'SELECT SUM (fraisforfait.montant*lignefraisforfait.quantite)'
+                . 'FROM lignefraisforfait '
+                . 'INNER JOIN fraisforfait'
+                . 'ON fraisforfait.id = lignefraisforfait.idfraisforfait'
+                . 'WHERE fraisforfait*Montant'
+
+
 
 //    . 'WHERE lignefraisforfait.idvisiteur = :unIdVisiteur '
 //    . 'AND fraisforfait.montant= :unMontant '
 //    . 'ORDER BY lignefraisforfait.idfraisforfait'
-        
-    );
+        );
         $requetePrepare->bindParam(':unIdVisiteur', $idVisiteur, PDO::PARAM_STR);
         $requetePrepare->bindParam(':unMontant', $montant, PDO::PARAM_STR);
+        $requetePrepare->execute();
+        return $requetePrepare->fetchAll();
+    }
+
+    /**
+     * Retourne la liste de tous les visiteurs qui ont des fiches validées.
+     *
+     * @return array     la liste de tous les visiteurs sous forme de tableau associatif.
+     */
+    public function getLesVisiteursDontFicheVA() {
+        $requetePrepare = PdoGsb::$monPdo->prepare(
+                'SELECT *'
+                . 'FROM visiteur join fichefrais on(id=idvisiteur)'
+                . 'WHERE fichefrais.idetat="VA"'
+                . 'ORDER BY nom'
+        );
+        $requetePrepare->execute();
+        return $requetePrepare->fetchAll();
+    }
+
+    public function getLesMoisDontFicheVA() {
+        $requetePrepare = PdoGSB::$monPdo->prepare(
+                'SELECT distinct fichefrais.mois AS mois FROM fichefrais '
+                . 'WHERE fichefrais.idetat="VA"'
+                . 'ORDER BY fichefrais.mois desc'
+        );
+        $requetePrepare->execute();
+        $lesMois = array();
+        while ($laLigne = $requetePrepare->fetch()) {
+            $mois = $laLigne['mois'];
+            $numAnnee = substr($mois, 0, 4);
+            $numMois = substr($mois, 4, 2);
+            $lesMois[] = array(
+                'mois' => $mois,
+                'numAnnee' => $numAnnee,
+                'numMois' => $numMois
+            );
+        }
+        return $lesMois;
+    }
+    /**
+     * Retourne la somme du montant des frais forfaitisés
+     * @param string $idVisiteur     ID du visiteur
+     * @param int $leMois            Mois sous la forme aaaamm
+     * @return int                   Somme du montant des frais forfaitisés
+     */
+     public function montantFF($idVisiteur,$leMois){
+        $requetePrepare = PdoGsb::$monPdo->prepare(
+        'SELECT SUM(lignefraisforfait.quantite*fraisforfait.montant)'  
+        .'FROM lignefraisforfait join fraisforfait on(lignefraisforfait.idfraisforfait=fraisforfait.id)'
+        .'WHERE idvisiteur = :unIdVisiteur '
+        .'AND mois = :unMois '
+        );
+        $requetePrepare->bindParam(':unIdVisiteur', $idVisiteur, PDO::PARAM_STR);
+        $requetePrepare->bindParam(':unMois', $leMois, PDO::PARAM_STR);
+        $requetePrepare->execute();  
+        return $requetePrepare->fetchAll();
+    }
+   
+    /**
+     * Retourne la somme du montant des frais hors forfait
+     * @param string $idVisiteur     ID du visiteur
+     * @param int $leMois            Mois sous la forme aaaamm
+     * @return int                   Somme du montant des frais hors forfait
+     */
+     public function montantHF($idVisiteur,$leMois){
+        $requetePrepare = PdoGsb::$monPdo->prepare(
+        'SELECT SUM(lignefraishorsforfait.montant) '
+        . 'FROM lignefraishorsforfait '
+        . 'WHERE lignefraishorsforfait.idvisiteur = :unIdVisiteur '
+        . 'AND lignefraishorsforfait.mois = :unMois '
+        . 'AND lignefraishorsforfait.libelle not in (SELECT libelle '
+                . 'FROM lignefraishorsforfait '
+                . 'WHERE libelle like "REFUSÉ:%")'    
+        );
+        $requetePrepare->bindParam(':unIdVisiteur', $idVisiteur, PDO::PARAM_STR);
+        $requetePrepare->bindParam(':unMois', $leMois, PDO::PARAM_STR);
+        $requetePrepare->execute();
+        return $requetePrepare->fetchAll();
+    }
+    /**
+     * Retourne la somme du montant total des frais hors forfait+celui des frais forfaitisés
+     * @param string $idVisiteur     ID du visiteur
+     * @param int $leMois            Mois sous la forme aaaamm
+     * @param int $total             Resultat de la somme du montant des frais forfaitisés+celui des frais hors forfait
+     * @return int                   Montant total des frais forfaitisés et hors forfait
+     */
+    public function total($idVisiteur, $leMois, $total)
+    {
+        $requetePrepare = PdoGSB::$monPdo->prepare(
+            'UPDATE fichefrais '
+            . 'SET montantvalide = :total '
+            . 'WHERE idvisiteur = :unIdVisiteur  '
+            . 'AND mois = :unMois'
+        );
+        $requetePrepare->bindParam(':total',$total, PDO::PARAM_STR);
+        $requetePrepare->bindParam(':unIdVisiteur', $idVisiteur, PDO::PARAM_STR);
+        $requetePrepare->bindParam(':unMois', $leMois, PDO::PARAM_STR);
+        $requetePrepare->execute();
+    }
+
+    public function getVisiteur($id){
+        $requetePrepare = PdoGsb::$monPdo->prepare(
+                'SELECT nom,prenom FROM visiteur '
+                . 'WHERE id=:unId'
+        );
+        $requetePrepare->bindParam(':unId',$id, PDO::PARAM_STR);    
         $requetePrepare->execute();
         return $requetePrepare->fetchAll();
     }

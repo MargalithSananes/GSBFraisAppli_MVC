@@ -14,6 +14,11 @@
  * @version   GIT: <0>
  * @link      http://www.reseaucerta.org Contexte « Laboratoire GSB »
  */
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_SPECIAL_CHARS);
 if (!$uc) {
     $uc = 'validerFrais';
@@ -37,7 +42,7 @@ switch ($action) {
         $lesMois = getLesDouzeDerniersMois();
         $moisASelectionner = $mois;
         $visiteurASelectionner = $idVisiteur;
-        //var_dump($lesFraisForfait);
+//var_dump($lesFraisForfait);
         if (empty($lesFraisForfait) && empty($lesFraisHorsForfait)) {
             ajouterErreur('Pas de fiche de frais pour ce visiteur ce mois');
             include 'vues/v_erreurs.php';
@@ -50,9 +55,9 @@ switch ($action) {
         $mois = filter_input(INPUT_POST, 'mois', FILTER_SANITIZE_SPECIAL_CHARS);
         $idVisiteur = filter_input(INPUT_POST, 'visiteur', FILTER_SANITIZE_SPECIAL_CHARS);
         $lesFrais = filter_input(INPUT_POST, 'lesFrais', FILTER_DEFAULT, FILTER_FORCE_ARRAY);
-        //var_dump($mois, $idVisiteur, $lesFrais);
+//var_dump($mois, $idVisiteur, $lesFrais);
         $pdo->majFraisForfait($idVisiteur, $mois, $lesFrais);
-        //$pdo-> majFraisHorsForfait($idVisiteur, $mois, $lesFraisHorsForfait);
+//$pdo-> majFraisHorsForfait($idVisiteur, $mois, $lesFraisHorsForfait);
         $lesFraisForfait = $pdo->getLesFraisForfait($idVisiteur, $mois);
         $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $mois);
         $lesVisiteurs = $pdo->getLesVisiteurs();
@@ -89,7 +94,7 @@ switch ($action) {
             break;
         }
         if (isset($_POST['Reporter'])) {
-            var_dump($id, $montant, $libelle = "Refuser". $libelle, $idVisiteur, $mois, $date);
+            var_dump($idFrais, $montant, $libelle = "Refuser" . $libelle, $idVisiteur, $mois, $date);
             $lesVisiteurs = $pdo->getLesVisiteurs();
             $lesMois = getLesDouzeDerniersMois();
             $moisASelectionner = $mois;
@@ -120,16 +125,31 @@ switch ($action) {
             $lesFraisHorsForfait = $pdo->getLesFraisHorsForfait($idVisiteur, $mois);
             $supprimerFraisHorsForfait = $pdo->supprimerFraisHorsForfait($idFrais);
         }
-    case 'ValiderFrais':
-//        $pdo->majNbJustificatifs($idVisiteur, $mois, $nbJustificatifs);
-        include 'vues/v_validerFrais.php';
+
+        include 'vues/v_validerfrais.php';
+        break;
+//fonction getnbjustificatif dans pdo qu on lapeel et affiche dans la vue dans case valider et tt les autre
+    case'btnvalider':
+        $idF = filter_input(INPUT_POST, 'idFHF', FILTER_SANITIZE_SPECIAL_CHARS);
+        $mois2 = filter_input(INPUT_POST, 'lstMois', FILTER_SANITIZE_SPECIAL_CHARS);
+        $idVisiteur = filter_input(INPUT_POST, 'lstv', FILTER_SANITIZE_SPECIAL_CHARS);
+        $leMois = filter_input(INPUT_POST, 'lstMois', FILTER_SANITIZE_SPECIAL_CHARS);
+//$montantfraisforfait=$pdo->montantfraisforfait($idVisiteur ,$mois2);
+//$montanthorsforfait=$pdo->montanthorsforfait($idVisiteur ,$mois2);
+        $montantfraisforfait = $pdo->montantFF($idVisiteur, $mois2);
+        $montantfraishorsforfait = $pdo->montantHF($idVisiteur, $mois2);
+
+        $mff = $montantfraisforfait[0][0];
+        $mfhf = $montantfraishorsforfait[0][0];
+        $montantotal = $mff + $mfhf;
+        $visiteur = $pdo->getVisiteur($idVisiteur);
+        $vstNom = $visiteur[0]['nom'];
+        $vstPrenom = $visiteur[0]['prenom'];
+        $pdo->total($idVisiteur, $mois2, $montantotal);
+        $pdo->majEtatFicheFrais($idVisiteur, $mois2, "VA"); //passe l etats de cl a va
+        include 'vues/v_valideravecsucces.php';
         break;
 }
 
-//Ajouter les fonctions pour recuperer les mois et visiteur dans reporter 
-//Ajouter un input avec value = id de type hiden dans v_validerfrais
-// Concaténer libelle pour ajouter refuser devant dans le isset post reporter
-// Dans creer nouveaufraishorsforfait , rajouter +1 a mois
-// Faire appel a EstPremierFraisMois et CreerNouvelleLigneFrais avt CreerNouveauFraisHorsForfait
 
 

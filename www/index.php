@@ -14,9 +14,13 @@
  * @link      http://www.reseaucerta.org Contexte « Laboratoire GSB »
  */
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once 'includes/fct.inc.php'; //On appelle la page des fonctions (mais on reste sur l'index) et elle doit forcément s'ouvrir(appel obligatoire)
 require_once 'includes/class.pdogsb.inc.php';
-session_start(); //fonction php qui lance la superglobale session
+//session_start(); //fonction php qui lance la superglobale session
 $pdo = PdoGsb::getPdoGsb(); //fonction de la classe PdoGsb
 $estConnecte = estConnecteV()|| estConnecteC (); //on affecte le résultat de la fonction estConnecte a la variable estConnecte
 $estConnecteV = estConnecteV();
@@ -47,6 +51,9 @@ case 'deconnexion':
     break;
 case 'validerFrais':
     include 'controleurs/c_validerFrais.php';
+    break;
+case 'mettreEnPaiement':
+    include 'controleurs/c_mettreEnPaiement.php';
     break;
 }
 require 'vues/v_pied.php';
